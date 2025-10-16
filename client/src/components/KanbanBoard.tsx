@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Card, Button, Space, Typography, Spin, Popconfirm, Tag, Tooltip, Empty } from 'antd'
+import { Button, Typography, Spin, Popconfirm, Tooltip, Empty } from 'antd'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { EditOutlined, CheckOutlined, DeleteOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import type { DropResult } from '@hello-pangea/dnd'
@@ -31,24 +31,50 @@ const KanbanBoard: React.FC<Props> = ({ tasks, loading, onEdit, onDelete, onComp
 
   const handleDragEnd = (result: DropResult) => {
     const { source, destination, draggableId } = result
+
+    // No destination or dropped in same position
     if (!destination) return
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return
+
     const srcCol = source.droppableId as TaskStatus
     const destCol = destination.droppableId as TaskStatus
+
+    // Create copies of task arrays
     const srcTasks = Array.from(grouped[srcCol])
     const destTasks = srcCol === destCol ? srcTasks : Array.from(grouped[destCol])
 
-    // Remove from source
-    const idx = srcTasks.findIndex((t) => t._id === draggableId)
-    if (idx === -1) return
-    const [moved] = srcTasks.splice(idx, 1)
+    // Find and remove task from source
+    const taskIndex = srcTasks.findIndex((t) => t._id === draggableId)
+    if (taskIndex === -1) return
 
-    // Insert into destination
-    destTasks.splice(destination.index, 0, { ...moved, status: destCol })
+    const [movedTask] = srcTasks.splice(taskIndex, 1)
 
-    // Recompute orders for affected columns
+    // Insert into destination at the correct position
+    if (srcCol === destCol) {
+      // Same column reorder
+      srcTasks.splice(destination.index, 0, movedTask)
+    } else {
+      // Different column - update status
+      destTasks.splice(destination.index, 0, { ...movedTask, status: destCol })
+    }
+
+    // Build updates array with new orders
     const updates: { id: string; status: TaskStatus; order: number }[] = []
-    srcTasks.forEach((t, i) => updates.push({ id: t._id, status: srcCol, order: i }))
-    destTasks.forEach((t, i) => updates.push({ id: t._id, status: destCol, order: i }))
+
+    if (srcCol === destCol) {
+      // Only update the source column
+      srcTasks.forEach((task, index) => {
+        updates.push({ id: task._id, status: srcCol, order: index })
+      })
+    } else {
+      // Update both source and destination columns
+      srcTasks.forEach((task, index) => {
+        updates.push({ id: task._id, status: srcCol, order: index })
+      })
+      destTasks.forEach((task, index) => {
+        updates.push({ id: task._id, status: destCol, order: index })
+      })
+    }
 
     onReorder(updates)
   }
@@ -130,9 +156,12 @@ const KanbanBoard: React.FC<Props> = ({ tasks, loading, onEdit, onDelete, onComp
                               {...prov.dragHandleProps}
                               className="kanban-task"
                               style={{
-                                transform: snapshot.isDragging ? 'rotate(5deg)' : 'none',
+                                ...prov.draggableProps.style,
+                                transform: snapshot.isDragging
+                                  ? `${prov.draggableProps.style?.transform || ''} rotate(5deg)`.trim()
+                                  : prov.draggableProps.style?.transform,
                                 boxShadow: snapshot.isDragging ? 'var(--shadow-xl)' : 'var(--shadow-sm)',
-                                opacity: snapshot.isDragging ? 0.8 : 1,
+                                opacity: snapshot.isDragging ? 0.9 : 1,
                               }}
                             >
                               <div className="kanban-task-header">

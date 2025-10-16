@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Layout, Tabs, Button, Space, Typography, Select, DatePicker, message, Card, Statistic, Row, Col, Avatar, Dropdown, Menu } from 'antd'
+import { Layout, Tabs, Button, Typography, Select, DatePicker, message, Card, Statistic, Row, Col, Avatar, Dropdown } from 'antd'
 import { PlusOutlined, LogoutOutlined, UserOutlined, FilterOutlined, CalendarOutlined, SettingOutlined } from '@ant-design/icons'
 import type { Dayjs } from 'dayjs'
 import { useAuth } from '../context/AuthContext'
@@ -95,43 +95,52 @@ const Dashboard: React.FC = () => {
     }
   }
 
-  const userMenu = (
-    <Menu>
-      <Menu.Item key="profile" icon={<UserOutlined />}>
-        Profile
-      </Menu.Item>
-      <Menu.Item key="settings" icon={<SettingOutlined />}>
-        Settings
-      </Menu.Item>
-      <Menu.Divider />
-      <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={logout}>
-        Logout
-      </Menu.Item>
-    </Menu>
-  )
+  const userMenuItems = [
+    {
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: 'Profile',
+    },
+    {
+      key: 'settings',
+      icon: <SettingOutlined />,
+      label: 'Settings',
+    },
+    {
+      type: 'divider' as const,
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Logout',
+      onClick: logout,
+    },
+  ]
 
   return (
     <Layout className="app-layout">
       <Header className="app-header">
         <div className="dashboard-header">
           <div className="flex items-center gap-4">
-            <Title level={3} className="dashboard-title" style={{ color: 'white', margin: 0 }}>
-              Task Manager
+            <Title level={2} className="dashboard-title">
+              📋 Task Manager
             </Title>
           </div>
-          
+
           <div className="dashboard-user">
-            <Text style={{ color: 'white', fontSize: 'var(--font-size-sm)' }}>
-              Welcome back, {user?.name}
+            <Text className="dashboard-user-text">
+              Welcome back, <strong>{user?.name}</strong>
             </Text>
-            <Dropdown overlay={userMenu} placement="bottomRight" arrow>
-              <Avatar 
-                style={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
+              <Avatar
+                size="large"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
                   cursor: 'pointer',
-                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                  border: '2px solid rgba(255, 255, 255, 0.4)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
                 }}
-                icon={<UserOutlined />}
+                icon={<UserOutlined style={{ color: '#ffffff' }} />}
               />
             </Dropdown>
           </div>
@@ -141,40 +150,44 @@ const Dashboard: React.FC = () => {
       <Content className="app-content">
         <div className="dashboard-content">
           {/* Statistics Cards */}
-          <Row gutter={[16, 16]} style={{ marginBottom: 'var(--space-6)' }}>
+          <Row gutter={[20, 20]} style={{ marginBottom: 'var(--space-8)' }}>
             <Col xs={24} sm={12} md={6}>
-              <Card className="fade-in" style={{ textAlign: 'center' }}>
+              <Card className="dashboard-stats-card fade-in" style={{ textAlign: 'center', padding: 'var(--space-3)' }}>
                 <Statistic
                   title="Total Tasks"
                   value={taskStats.total}
-                  valueStyle={{ color: 'var(--primary-600)' }}
+                  valueStyle={{ color: '#0284c7', fontSize: '32px', fontWeight: '700' }}
+                  prefix="📊"
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-              <Card className="fade-in" style={{ textAlign: 'center' }}>
+              <Card className="dashboard-stats-card fade-in" style={{ textAlign: 'center', padding: 'var(--space-3)' }}>
                 <Statistic
                   title="Pending"
                   value={taskStats.pending}
-                  valueStyle={{ color: 'var(--warning-600)' }}
+                  valueStyle={{ color: '#f59e0b', fontSize: '32px', fontWeight: '700' }}
+                  prefix="⏳"
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-              <Card className="fade-in" style={{ textAlign: 'center' }}>
+              <Card className="dashboard-stats-card fade-in" style={{ textAlign: 'center', padding: 'var(--space-3)' }}>
                 <Statistic
                   title="In Progress"
                   value={taskStats.inProgress}
-                  valueStyle={{ color: 'var(--primary-600)' }}
+                  valueStyle={{ color: '#0284c7', fontSize: '32px', fontWeight: '700' }}
+                  prefix="🚀"
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-              <Card className="fade-in" style={{ textAlign: 'center' }}>
+              <Card className="dashboard-stats-card fade-in" style={{ textAlign: 'center', padding: 'var(--space-3)' }}>
                 <Statistic
                   title="Completed"
                   value={taskStats.completed}
-                  valueStyle={{ color: 'var(--success-600)' }}
+                  valueStyle={{ color: '#22c55e', fontSize: '32px', fontWeight: '700' }}
+                  prefix="✅"
                 />
               </Card>
             </Col>
